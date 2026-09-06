@@ -1,0 +1,6 @@
+{
+  "name": "AeroScan PM2.5",
+  "description": "แอปพลิเคชันตรวจวัดฝุ่นจากภาพถ่าย AI วิเคราะห์ PM2.5 แบบเรียลไทม์ พร้อม Live Mode, แจ้งเตือนมลพิษ, แดชบอร์ดสุขภาพ, กราฟสถิติ, บันทึกออฟไลน์ และ GPS",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,13 @@
+{
+  "name": "aeroscan-pm25-server",
+  "version": "1.0.0",
+  "description": "AeroScan PM2.5 Web Application & Server with AI Atmospheric Vision Analysis",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": ["pm25", "ai", "vision", "air-quality", "koschmieder", "dark-channel-prior"],
+  "author": "AeroScan Team",
+  "license": "MIT"
+}

@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">AeroScan PM2.5</string>
+    <string name="dashboard">แดชบอร์ด</string>
+    <string name="live_scan">สแกนสด</string>
+    <string name="history">ประวัติ</string>
+    <string name="settings">ตั้งค่า</string>
+    <string name="pm25_title">ค่าฝุ่นละออง PM2.5</string>
+    <string name="aqi_title">ดัชนีคุณภาพอากาศ (AQI)</string>
+    <string name="analyze_photo">วิเคราะห์จากรูปถ่าย</string>
+    <string name="capture_photo">ถ่ายภาพใหม่</string>
+    <string name="select_gallery">เลือกจากแกลเลอรี</string>
+    <string name="realtime_alert">การแจ้งเตือนฝุ่นเกินมาตรฐาน</string>
+    <string name="cloud_sync">ซิงค์ข้อมูล Cloud</string>
+    <string name="biometric_lock">ล็อกความปลอดภัยไบโอเมตริกซ์</string>
+    <string name="gps_location">ตำแหน่ง GPS ปัจจุบัน</string>
+    <string name="custom_location">เลือกพื้นที่กำหนดเอง</string>
+</resources>
