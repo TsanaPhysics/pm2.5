@@ -1,9 +1,10 @@
 /**
- * AeroScan PM2.5 - Web Client Application Logic
+ * AeroScan PM2.5 - Ultra-Modern Web Client Application Logic
+ * Full Responsive, Mobile Touch-Optimized, Dynamic Lighting & Real-time AI Engine
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-  // State
+  // Application State
   let currentStream = null;
   let currentFacingMode = 'environment';
   let isCameraActive = false;
@@ -11,18 +12,22 @@ document.addEventListener('DOMContentLoaded', () => {
   let lastFrameTime = performance.now();
   let frameCount = 0;
   let currentFps = 0;
-  let currentLocation = { name: 'กรุงเทพมหานคร (GPS)', province: 'กรุงเทพมหานคร' };
+  let currentLocation = { name: 'กรุงเทพมหานคร', province: 'กรุงเทพมหานคร' };
   let scanHistory = JSON.parse(localStorage.getItem('aeroscan_history') || '[]');
+
+  let lastPm25 = 0;
+  let lastAqi = 0;
 
   // DOM Elements
   const tabs = document.querySelectorAll('.tab-btn');
   const tabPanes = document.querySelectorAll('.tab-pane');
   const dropzone = document.getElementById('dropzone');
   const fileInput = document.getElementById('fileInput');
+  const btnChooseFile = document.querySelector('.btn-choose-file');
   const imagePreview = document.getElementById('imagePreview');
   const laserScanner = document.getElementById('laserScanner');
   const hudStatusBadge = document.getElementById('hudStatusBadge');
-  const presetButtons = document.querySelectorAll('.btn-preset');
+  const presetButtons = document.querySelectorAll('.chip-btn, .btn-preset');
 
   // Camera Elements
   const btnToggleCam = document.getElementById('btnToggleCam');
@@ -65,6 +70,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnExportCsv = document.getElementById('btnExportCsv');
   const btnClearHistory = document.getElementById('btnClearHistory');
 
+  // QR Modal Elements
+  const btnOpenQrModal = document.getElementById('btnOpenQrModal');
+  const btnCloseQrModal = document.getElementById('btnCloseQrModal');
+  const qrModalBackdrop = document.getElementById('qrModalBackdrop');
+  const btnCopyUrl = document.getElementById('btnCopyUrl');
+  const btnShareWeb = document.getElementById('btnShareWeb');
+
+  const PUBLIC_WEB_URL = 'https://dairy-faster-perjurer.ngrok-free.dev';
+
   // ==========================================
   // TAB NAVIGATION
   // ==========================================
@@ -92,35 +106,37 @@ document.addEventListener('DOMContentLoaded', () => {
   // GPS & LOCATION
   // ==========================================
   function updateGeolocation() {
-    locationText.textContent = 'กำลังค้นหาพิกัด...';
+    locationText.textContent = 'ค้นหาพิกัด...';
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         pos => {
           const lat = pos.coords.latitude.toFixed(2);
           const lon = pos.coords.longitude.toFixed(2);
           currentLocation = {
-            name: `พิกัด ${lat}, ${lon}`,
+            name: `${lat}, ${lon}`,
             province: 'พิกัดปัจจุบัน'
           };
-          locationText.textContent = `${currentLocation.name}`;
+          locationText.textContent = `พิกัด ${currentLocation.name}`;
         },
         err => {
           console.warn('Geolocation denied, using default:', err.message);
           currentLocation = { name: 'กรุงเทพมหานคร', province: 'กรุงเทพมหานคร' };
           locationText.textContent = 'กรุงเทพมหานคร';
         },
-        { timeout: 8000 }
+        { timeout: 7000 }
       );
     } else {
       locationText.textContent = 'กรุงเทพมหานคร';
     }
   }
 
-  btnRefreshLocation.addEventListener('click', updateGeolocation);
-  updateGeolocation();
+  if (btnRefreshLocation) {
+    btnRefreshLocation.addEventListener('click', updateGeolocation);
+    updateGeolocation();
+  }
 
   // ==========================================
-  // PROCEDURAL SCENE GENERATION
+  // PROCEDURAL SCENE GENERATOR
   // ==========================================
   function generateProceduralScene(sceneType) {
     const width = 480;
@@ -131,14 +147,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const ctx = canvas.getContext('2d');
 
     if (sceneType === 'CLEAR_MOUNTAIN') {
-      // Azure sky
       const skyGrad = ctx.createLinearGradient(0, 0, 0, height * 0.65);
       skyGrad.addColorStop(0, '#1e82e6');
       skyGrad.addColorStop(1, '#87cefa');
       ctx.fillStyle = skyGrad;
       ctx.fillRect(0, 0, width, height);
 
-      // Sharp distant mountain
       ctx.fillStyle = '#2d5a41';
       ctx.beginPath();
       ctx.moveTo(0, height * 0.65);
@@ -151,7 +165,6 @@ document.addEventListener('DOMContentLoaded', () => {
       ctx.closePath();
       ctx.fill();
 
-      // Forefront dark forest ridge
       ctx.fillStyle = '#143c23';
       ctx.beginPath();
       ctx.moveTo(0, height * 0.75);
@@ -164,14 +177,12 @@ document.addEventListener('DOMContentLoaded', () => {
       ctx.fill();
 
     } else if (sceneType === 'MODERATE_SUBURB') {
-      // Hazy grayish-cyan sky
       const skyGrad = ctx.createLinearGradient(0, 0, 0, height * 0.7);
       skyGrad.addColorStop(0, '#8cafc8');
       skyGrad.addColorStop(1, '#d7e1eb');
       ctx.fillStyle = skyGrad;
       ctx.fillRect(0, 0, width, height);
 
-      // Distant buildings
       ctx.fillStyle = '#788791';
       ctx.beginPath();
       ctx.moveTo(0, height * 0.62);
@@ -193,19 +204,16 @@ document.addEventListener('DOMContentLoaded', () => {
       ctx.closePath();
       ctx.fill();
 
-      // Atmospheric haze layer
       ctx.fillStyle = 'rgba(220, 225, 230, 0.4)';
       ctx.fillRect(0, height * 0.35, width, height);
 
     } else if (sceneType === 'HEAVY_SMOG_CITY') {
-      // Thick yellowish-gray smog sky
       const skyGrad = ctx.createLinearGradient(0, 0, 0, height * 0.8);
       skyGrad.addColorStop(0, '#cdc8b9');
       skyGrad.addColorStop(1, '#e1dccd');
       ctx.fillStyle = skyGrad;
       ctx.fillRect(0, 0, width, height);
 
-      // Obscured distant city skyline
       ctx.fillStyle = '#b4afa5';
       ctx.beginPath();
       ctx.moveTo(0, height * 0.60);
@@ -223,11 +231,9 @@ document.addEventListener('DOMContentLoaded', () => {
       ctx.closePath();
       ctx.fill();
 
-      // Dense particulate aerosol veil
       ctx.fillStyle = 'rgba(230, 225, 210, 0.65)';
       ctx.fillRect(0, 0, width, height);
 
-      // Faint bridge/road
       ctx.fillStyle = '#8c877d';
       ctx.fillRect(0, height * 0.78, width, height);
     }
@@ -235,18 +241,27 @@ document.addEventListener('DOMContentLoaded', () => {
     return canvas.toDataURL('image/jpeg', 0.92);
   }
 
-  // Preset button clicks
+  // Preset button listeners
   presetButtons.forEach(btn => {
     btn.addEventListener('click', () => {
       const scene = btn.dataset.scene;
-      const dataUrl = generateProceduralScene(scene);
-      loadImageAndAnalyze(dataUrl);
+      if (scene) {
+        const dataUrl = generateProceduralScene(scene);
+        loadImageAndAnalyze(dataUrl);
+      }
     });
   });
 
   // ==========================================
   // FILE DRAG & DROP AND UPLOAD
   // ==========================================
+  if (btnChooseFile && fileInput) {
+    btnChooseFile.addEventListener('click', (e) => {
+      e.stopPropagation();
+      fileInput.click();
+    });
+  }
+
   ['dragenter', 'dragover'].forEach(eventName => {
     dropzone.addEventListener(eventName, e => {
       e.preventDefault();
@@ -268,7 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  fileInput.addEventListener('change', e => {
+  fileInput.addEventListener('change', () => {
     if (fileInput.files.length > 0) {
       handleImageFile(fileInput.files[0]);
     }
@@ -294,27 +309,60 @@ document.addEventListener('DOMContentLoaded', () => {
         saveScanResult(result);
         laserScanner.classList.remove('scanning');
         hudStatusBadge.textContent = `ANALYSIS DONE (${result.durationMs}ms)`;
-      }, 300);
+      }, 250);
     };
   }
 
   // ==========================================
-  // DISPLAY RESULTS & TELEMETRY
+  // DISPLAY RESULTS & DYNAMIC THEME LIGHTING
   // ==========================================
+  function hexToRgb(hex) {
+    const clean = hex.replace('#', '');
+    if (clean.length === 6) {
+      const num = parseInt(clean, 16);
+      return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
+    }
+    return null;
+  }
+
+  function animateNumber(element, start, end, duration = 400, decimals = 0) {
+    const startTime = performance.now();
+    function update(time) {
+      const progress = Math.min((time - startTime) / duration, 1.0);
+      const ease = 1 - Math.pow(1 - progress, 3);
+      const current = start + (end - start) * ease;
+      element.textContent = decimals > 0 ? current.toFixed(decimals) : Math.round(current);
+      if (progress < 1.0) {
+        requestAnimationFrame(update);
+      }
+    }
+    requestAnimationFrame(update);
+  }
+
   function displayAnalysisResult(result) {
     const lvl = result.level;
 
+    // Dynamic Ambient Theme Lighting shift
+    document.documentElement.style.setProperty('--theme-accent', lvl.color);
+    const rgb = hexToRgb(lvl.color);
+    if (rgb) {
+      document.documentElement.style.setProperty('--theme-accent-rgb', `${rgb.r}, ${rgb.g}, ${rgb.b}`);
+    }
+
     // Badge & Confidence
     levelBadge.textContent = lvl.titleTh;
-    levelBadge.style.background = `${lvl.color}22`;
+    levelBadge.style.background = `${lvl.color}1e`;
     levelBadge.style.borderColor = lvl.color;
     levelBadge.style.color = lvl.color;
     confidenceTag.textContent = `AI Confidence: ${result.confidencePercent}%`;
 
-    // Numbers
-    pm25Value.textContent = result.pm25.toFixed(1);
+    // Numbers animation
+    animateNumber(pm25Value, lastPm25, result.pm25, 350, 1);
+    animateNumber(aqiValue, lastAqi, result.aqi, 350, 0);
+    lastPm25 = result.pm25;
+    lastAqi = result.aqi;
+
     pm25Value.style.color = lvl.color;
-    aqiValue.textContent = result.aqi;
     aqiValue.style.color = lvl.color;
 
     // Status Banner
@@ -323,20 +371,18 @@ document.addEventListener('DOMContentLoaded', () => {
     statusBanner.style.borderLeftColor = lvl.color;
     statusBanner.style.background = `${lvl.color}14`;
 
-    // Gauge Needle & Arc
-    // Full arc is 283. Angle range is -90deg to +90deg (total 180deg).
-    // PM2.5 normalized up to 150 µg/m³
+    // Radial Gauge
     const normalized = Math.min(Math.max(result.pm25 / 150.0, 0.0), 1.0);
-    const strokeOffset = 283 - (normalized * 283);
+    const strokeOffset = 289 - (normalized * 289);
     gaugeActiveArc.style.strokeDashoffset = strokeOffset;
 
     const needleDeg = -90 + (normalized * 180);
     gaugeNeedle.setAttribute('transform', `rotate(${needleDeg} 120 120)`);
     gaugeNeedle.setAttribute('stroke', lvl.color);
 
-    // Telemetry Box
-    telemetryHaze.innerHTML = `${result.hazeIndexPercent}<span class="t-unit">%</span>`;
-    telemetryExtinction.innerHTML = `${result.extinctionCoeff}<span class="t-unit">km⁻¹</span>`;
+    // Telemetry Cards
+    telemetryHaze.innerHTML = `${result.hazeIndexPercent}<span class="unit">%</span>`;
+    telemetryExtinction.innerHTML = `${result.extinctionCoeff}<span class="unit">km⁻¹</span>`;
     telemetryTransmission.textContent = result.transmission;
     telemetryContrast.textContent = result.contrastEntropy;
 
@@ -370,7 +416,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const constraints = {
         video: {
-          facingMode: currentFacingMode,
+          facingMode: { ideal: currentFacingMode },
           width: { ideal: 640 },
           height: { ideal: 480 }
         },
@@ -384,11 +430,10 @@ document.addEventListener('DOMContentLoaded', () => {
       btnToggleCam.classList.add('active');
       isCameraActive = true;
 
-      // Start live processing loop
       processCameraFeed();
     } catch (err) {
       console.error('Camera access error:', err);
-      alert('ไม่สามารถเข้าถึงกล้องได้: ' + err.message + '\nกรุณาตรวจสอบสิทธิ์การใช้งานกล้องในเบราว์เซอร์');
+      alert('ไม่สามารถเปิดกล้องได้: ' + err.message + '\nกรุณาตรวจสอบการอนุญาตใช้งานกล้องในเบราว์เซอร์');
     }
   }
 
@@ -420,8 +465,7 @@ document.addEventListener('DOMContentLoaded', () => {
       camFps.textContent = `FPS: ${currentFps}`;
     }
 
-    // Run inference every 200ms to balance performance & response
-    if (now - lastInferenceTime > 200 && cameraVideo.readyState === cameraVideo.HAVE_ENOUGH_DATA) {
+    if (now - lastInferenceTime > 220 && cameraVideo.readyState === cameraVideo.HAVE_ENOUGH_DATA) {
       lastInferenceTime = now;
       const result = AirQualityVisionEngine.analyzeImageSource(cameraVideo, currentLocation);
       displayAnalysisResult(result);
@@ -462,17 +506,16 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Render Table
     let html = '';
     scanHistory.forEach(rec => {
       html += `
         <tr>
           <td>${rec.time}</td>
           <td>${rec.location}</td>
-          <td style="font-family: var(--font-mono); font-weight: 700; color: ${rec.color}">${rec.pm25}</td>
-          <td style="font-family: var(--font-mono);">${rec.aqi}</td>
+          <td style="font-family: var(--font-display); font-weight: 800; color: ${rec.color}">${rec.pm25}</td>
+          <td style="font-family: var(--font-mono); font-weight: 600;">${rec.aqi}</td>
           <td>
-            <span class="history-badge" style="background: ${rec.color}22; color: ${rec.color}; border: 1px solid ${rec.color}55;">
+            <span style="display:inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.72rem; font-weight: 700; background: ${rec.color}1e; color: ${rec.color}; border: 1px solid ${rec.color}55;">
               ${rec.levelTh}
             </span>
           </td>
@@ -481,7 +524,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     historyTableBody.innerHTML = html;
 
-    // Render SVG Trend Chart
     renderTrendChart();
   }
 
@@ -493,11 +535,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const width = 500;
-    const height = 160;
+    const height = 150;
     const padX = 35;
     const padY = 20;
 
-    const maxPm = Math.max(100, ...data.map(d => d.pm25));
+    const maxPm = Math.max(80, ...data.map(d => d.pm25));
     const stepX = (width - padX * 2) / (data.length - 1);
 
     const points = data.map((d, i) => {
@@ -510,40 +552,33 @@ document.addEventListener('DOMContentLoaded', () => {
       return i === 0 ? `M ${pt.x} ${pt.y}` : `${acc} L ${pt.x} ${pt.y}`;
     }, '');
 
-    // Threshold line at 37.5 (Thai standard)
     const thresholdY = height - padY - (37.5 / maxPm) * (height - padY * 2);
 
     let circles = '';
     points.forEach(pt => {
-      circles += `<circle cx="${pt.x}" cy="${pt.y}" r="4" fill="${pt.color}" stroke="#070b14" stroke-width="2" />`;
+      circles += `<circle cx="${pt.x}" cy="${pt.y}" r="4.5" fill="${pt.color}" stroke="#060913" stroke-width="2" />`;
     });
 
     trendSvg.innerHTML = `
       <defs>
-        <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#00b0ff" stop-opacity="0.3"/>
+        <linearGradient id="chartGlow" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#00b0ff" stop-opacity="0.32"/>
           <stop offset="100%" stop-color="#00b0ff" stop-opacity="0.0"/>
         </linearGradient>
       </defs>
-      <!-- Grid line for Thai PM2.5 standard (37.5) -->
-      <line x1="${padX}" y1="${thresholdY}" x2="${width - padX}" y2="${thresholdY}" stroke="rgba(255, 82, 82, 0.4)" stroke-dasharray="4 3" stroke-width="1.5" />
-      <text x="${width - padX - 4}" y="${thresholdY - 5}" fill="rgba(255, 82, 82, 0.7)" font-size="10" text-anchor="end" font-family="JetBrains Mono">37.5 เกณฑ์ไทย</text>
+      <line x1="${padX}" y1="${thresholdY}" x2="${width - padX}" y2="${thresholdY}" stroke="rgba(255, 82, 82, 0.45)" stroke-dasharray="4 3" stroke-width="1.5" />
+      <text x="${width - padX - 4}" y="${thresholdY - 5}" fill="rgba(255, 82, 82, 0.85)" font-size="10" text-anchor="end" font-family="JetBrains Mono">37.5 เกณฑ์ไทย</text>
       
-      <!-- Area fill -->
-      <path d="${pathData} L ${points[points.length - 1].x} ${height - padY} L ${points[0].x} ${height - padY} Z" fill="url(#chartGrad)" />
-      
-      <!-- Trend Line -->
+      <path d="${pathData} L ${points[points.length - 1].x} ${height - padY} L ${points[0].x} ${height - padY} Z" fill="url(#chartGlow)" />
       <path d="${pathData}" fill="none" stroke="#00b0ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
-      
-      <!-- Data dots -->
       ${circles}
     `;
   }
 
   function renderEmptyChart() {
     trendSvg.innerHTML = `
-      <text x="250" y="80" fill="rgba(255,255,255,0.2)" font-size="12" text-anchor="middle" font-family="Plus Jakarta Sans">
-        บันทึกข้อมูลสแกนอย่างน้อย 2 ครั้ง เพื่อแสดงเส้นแนวโน้ม
+      <text x="250" y="75" fill="rgba(255,255,255,0.25)" font-size="12" text-anchor="middle" font-family="Plus Jakarta Sans">
+        สแกนอย่างน้อย 2 ครั้ง เพื่อแสดงกราฟแนวโน้มมลพิษ
       </text>
     `;
   }
@@ -577,13 +612,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ==========================================
-  // QR CODE MODAL FOR STUDENTS
+  // QR CODE MODAL & SHARE API
   // ==========================================
-  const btnOpenQrModal = document.getElementById('btnOpenQrModal');
-  const btnCloseQrModal = document.getElementById('btnCloseQrModal');
-  const qrModalBackdrop = document.getElementById('qrModalBackdrop');
-  const btnCopyUrl = document.getElementById('btnCopyUrl');
-
   if (btnOpenQrModal && qrModalBackdrop) {
     btnOpenQrModal.addEventListener('click', () => {
       qrModalBackdrop.classList.add('active');
@@ -600,17 +630,36 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     btnCopyUrl.addEventListener('click', () => {
-      const urlText = 'https://dairy-faster-perjurer.ngrok-free.dev';
-      navigator.clipboard.writeText(urlText).then(() => {
+      navigator.clipboard.writeText(PUBLIC_WEB_URL).then(() => {
         btnCopyUrl.textContent = 'คัดลอกแล้ว!';
         setTimeout(() => {
-          btnCopyUrl.textContent = 'คัดลอก';
+          btnCopyUrl.textContent = 'คัดลอกลิงก์';
         }, 2000);
       });
     });
   }
 
-  // Automatically load the clear mountain preset on initial page launch
+  if (btnShareWeb) {
+    btnShareWeb.addEventListener('click', async () => {
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: 'AeroScan PM2.5',
+            text: 'ตรวจวัดฝุ่น PM2.5 จากภาพถ่ายและกล้องสดด้วย AI',
+            url: PUBLIC_WEB_URL
+          });
+        } catch (err) {
+          if (err.name !== 'AbortError') {
+            console.warn('Share error:', err);
+          }
+        }
+      } else {
+        qrModalBackdrop.classList.add('active');
+      }
+    });
+  }
+
+  // Initial preset
   const initialPreset = generateProceduralScene('CLEAR_MOUNTAIN');
   loadImageAndAnalyze(initialPreset);
 });
