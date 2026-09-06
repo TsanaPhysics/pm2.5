@@ -464,13 +464,35 @@
       </div>
 
       <div class="qr-url-panel">
-        <span class="qr-url-display">https://dairy-faster-perjurer.ngrok-free.dev</span>
+        <span class="qr-url-display">https://dairy-faster-perjurer.ngrok-free.dev/?openExternalBrowser=1</span>
         <button class="btn-copy-action" id="btnCopyUrl">คัดลอกลิงก์</button>
       </div>
 
       <div class="qr-footer-note">
-        ✨ ใช้งานได้ทั้งบน iOS (Safari) และ Android (Chrome) รองรับสแกนภาพถ่ายและเปิดกล้องสด HUD
+        ✨ ใช้งานได้ทั้งบน iOS (Safari) และ Android (Chrome) มีระบบเปิดออกเบราว์เซอร์หลักอัตโนมัติเมื่อสแกนจาก LINE
       </div>
+    </div>
+  </div>
+
+  <!-- LINE In-App Browser Guidance Modal -->
+  <div class="line-modal-backdrop" id="lineModalBackdrop">
+    <div class="line-modal-card glass-card">
+      <div class="line-modal-icon">📷</div>
+      <div class="line-modal-title">วิธีเปิดกล้องเมื่อเปิดผ่าน LINE</div>
+      <div class="line-modal-desc">
+        ระบบความปลอดภัยของแอป LINE ไม่อนุญาตให้เปิดกล้องสดบนหน้าเว็บ กรุณาเปิดด้วยเบราว์เซอร์ของเครื่อง:
+      </div>
+      <div class="line-steps-box">
+        <div class="line-step-item">
+          <span class="step-num-pill">1</span>
+          <span>แตะไอคอน <b>3 จุด (⋮ หรือ ⋯)</b> ที่มุมบนหรือล่างของหน้าจอ</span>
+        </div>
+        <div class="line-step-item">
+          <span class="step-num-pill">2</span>
+          <span>เลือก <b>"เปิดด้วยเบราว์เซอร์อื่น"</b> หรือ <b>"Open in Safari / Chrome"</b></span>
+        </div>
+      </div>
+      <button class="btn-line-action" id="btnCloseLineModal">รับทราบ / ใช้โหมดสแกนภาพถ่ายแทน</button>
     </div>
   </div>
 

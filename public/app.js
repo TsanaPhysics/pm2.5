@@ -77,7 +77,29 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnCopyUrl = document.getElementById('btnCopyUrl');
   const btnShareWeb = document.getElementById('btnShareWeb');
 
-  const PUBLIC_WEB_URL = 'https://dairy-faster-perjurer.ngrok-free.dev';
+  const PUBLIC_WEB_URL = 'https://dairy-faster-perjurer.ngrok-free.dev/?openExternalBrowser=1';
+
+  // LINE & In-App Browser Auto-Detection
+  const isLineBrowser = /Line\//i.test(navigator.userAgent) || /Line/i.test(navigator.userAgent);
+  const lineModalBackdrop = document.getElementById('lineModalBackdrop');
+  const btnCloseLineModal = document.getElementById('btnCloseLineModal');
+
+  // If opened inside LINE without openExternalBrowser=1, redirect immediately to kick open external browser
+  if (isLineBrowser && !window.location.search.includes('openExternalBrowser=1')) {
+    const sep = window.location.href.includes('?') ? '&' : '?';
+    window.location.replace(window.location.href + sep + 'openExternalBrowser=1');
+  }
+
+  if (btnCloseLineModal && lineModalBackdrop) {
+    btnCloseLineModal.addEventListener('click', () => {
+      lineModalBackdrop.classList.remove('active');
+    });
+    lineModalBackdrop.addEventListener('click', (e) => {
+      if (e.target === lineModalBackdrop) {
+        lineModalBackdrop.classList.remove('active');
+      }
+    });
+  }
 
   // ==========================================
   // TAB NAVIGATION
@@ -413,6 +435,19 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   async function startCamera() {
+    // If inside LINE in-app webview, show guidance modal to open in Safari/Chrome
+    if (isLineBrowser) {
+      if (lineModalBackdrop) {
+        lineModalBackdrop.classList.add('active');
+      }
+      return;
+    }
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      alert('เบราว์เซอร์นี้ไม่รองรับการเปิดกล้องผ่านเว็บ กรุณาเปิดผ่าน Safari หรือ Google Chrome บนมือถือ');
+      return;
+    }
+
     try {
       const constraints = {
         video: {
@@ -433,7 +468,11 @@ document.addEventListener('DOMContentLoaded', () => {
       processCameraFeed();
     } catch (err) {
       console.error('Camera access error:', err);
-      alert('ไม่สามารถเปิดกล้องได้: ' + err.message + '\nกรุณาตรวจสอบการอนุญาตใช้งานกล้องในเบราว์เซอร์');
+      if (isLineBrowser && lineModalBackdrop) {
+        lineModalBackdrop.classList.add('active');
+      } else {
+        alert('ไม่สามารถเปิดกล้องได้: ' + err.message + '\nกรุณาตรวจสอบการอนุญาตใช้งานกล้องในเบราว์เซอร์ Safari/Chrome');
+      }
     }
   }
 

@@ -3,8 +3,8 @@
 
 <div align="center">
   <img src="aeroscan-qrcode.png" width="220" alt="AeroScan QR Code" />
-  <p><b>📱 สแกน QR Code เพื่อเปิดใช้งานผ่านโทรศัพท์มือถือ</b></p>
-  <p><code>https://dairy-faster-perjurer.ngrok-free.dev</code></p>
+  <p><b>📱 สแกน QR Code เพื่อเปิดใช้งานผ่านโทรศัพท์มือถือ (รองรับสแกนผ่าน LINE / กล้อง)</b></p>
+  <p><code>https://dairy-faster-perjurer.ngrok-free.dev/?openExternalBrowser=1</code></p>
 </div>
 
 ---
